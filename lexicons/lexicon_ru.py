@@ -1,0 +1,1 @@
+command_answers = {"start": "This is start message"}
