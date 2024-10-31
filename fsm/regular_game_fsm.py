@@ -75,6 +75,6 @@ async def process_replay_no(callback: CallbackQuery, state: FSMContext):
 
 
 @router.message(RegularGameFSM.guessing, Command("stop"))
-async def cancel(message: Message, state: FSMContext):
+async def stop(message: Message, state: FSMContext):
     await message.answer(regular_fsm_context_answers["stop"])
     await state.clear()

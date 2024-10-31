@@ -4,11 +4,13 @@ from aiogram.filters import Command
 from lexicons.lexicon_ru import command_answers
 from keyboards.inline_keyboards import game_keyboard
 from aiogram import F
+from tools.user_info import new_user
 
 router = Router()
 
 @router.message(Command("start"))
 async def start(message: Message):
+    new_user(message.from_user.id)
     await message.answer(command_answers["start"])
 
 @router.message(Command("help"))
