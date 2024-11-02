@@ -8,7 +8,7 @@ from aiogram.filters import Command
 from lexicons.lexicon_ru import daily_fsm_context_answers
 from tools.word_of_day import WordOfDay
 from tools.check_word import check
-from tools.user_info import LastGame
+from tools.user_info import User
 from datetime import datetime
 
 router = Router()
@@ -29,17 +29,17 @@ async def start_game(callback: CallbackQuery, state: FSMContext):
 
 @router.message(DailyGameFSM.guessing, ValidWordFilter())
 async def process_guessing(message: Message, state: FSMContext):
+    user = User(message.from_user.id)
     data = await state.get_data()
-    print(data["word"]) #test
 
     if data["attempts"] > 0:
         if data["word"] == message.text.lower():
              await message.answer(daily_fsm_context_answers["correct"].format(word=data["word"],
                                                                             check_word=check(message.text.lower(),
                                                                                                  data["word"]),
-                                                                            time="time"))
+                                                                            time=WordOfDay.time_left()))
              await state.clear()
-
+             user.set_win()
         else:
             await state.update_data(attempts=data["attempts"] - 1)
             await message.answer(daily_fsm_context_answers["incorrect"].format(word=message.text,
@@ -50,9 +50,10 @@ async def process_guessing(message: Message, state: FSMContext):
 
     else:
         await message.answer(daily_fsm_context_answers["end"].format(word=data["word"],
-                                                                     time="time"))
+                                                                     time=WordOfDay.time_left()))
         await state.clear()
-    LastGame.set(message.from_user.id, (datetime.today().day, datetime.today().month, datetime.today().year))
+        user.set_lose()
+    user.set_last_game((datetime.today().day, datetime.today().month, datetime.today().year))
 
 
 @router.message(DailyGameFSM.guessing)

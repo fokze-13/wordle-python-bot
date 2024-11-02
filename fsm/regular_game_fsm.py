@@ -9,6 +9,7 @@ from keyboards.inline_keyboards import replay_game_keyboard
 from lexicons.lexicon_ru import regular_fsm_context_answers
 from tools.word_generator import Word
 from tools.check_word import check
+from tools.user_info import User
 
 router = Router()
 word_generator = Word()
@@ -29,8 +30,8 @@ async def start_game(callback: CallbackQuery, state: FSMContext):
 
 @router.message(RegularGameFSM.guessing, ValidWordFilter())
 async def process_guessing(message: Message, state: FSMContext):
+    user = User(message.from_user.id)
     data = await state.get_data()
-    print(data["word"]) #test
 
     if data["attempts"] > 0:
         if data["word"] == message.text.lower():
@@ -39,7 +40,7 @@ async def process_guessing(message: Message, state: FSMContext):
                                                                                                  data["word"])),
                                   reply_markup=replay_game_keyboard)
              await state.set_state(RegularGameFSM.replay)
-
+             user.set_win()
         else:
             await state.update_data(attempts=data["attempts"] - 1)
             await message.answer(regular_fsm_context_answers["incorrect"].format(word=message.text,
@@ -51,7 +52,7 @@ async def process_guessing(message: Message, state: FSMContext):
     else:
         await message.answer(regular_fsm_context_answers["end"].format(word=data["word"]), reply_markup=replay_game_keyboard)
         await state.set_state(RegularGameFSM.replay)
-
+        user.set_lose()
 
 @router.message(RegularGameFSM.guessing)
 async def process_guessing_is_not_valid(message: Message, state: FSMContext):

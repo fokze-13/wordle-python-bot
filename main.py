@@ -20,10 +20,10 @@ async def main():
     dp = Dispatcher(storage=storage)
     logger.info("Redis storage running")
 
-    dp.include_router(user_handlers.router)
-    dp.include_router(callback_handlers.router)
     dp.include_router(daily_game_fsm.router)
     dp.include_router(regular_game_fsm.router)
+    dp.include_router(user_handlers.router)
+    dp.include_router(callback_handlers.router)
 
     await dp.start_polling(bot)
 
